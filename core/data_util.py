@@ -253,6 +253,7 @@ def process_features(args, features, dataset, attribute_dict, max_attr_vals, tar
         features = pd.get_dummies(features)
     feat = np.array(features)
     if mode == 'train':
+        print('='*100 + 'Applying BitRand' + '='*100)
         feat = BitRand(sample_feature_arr=feat, eps=args.target_epsilon, l=args.num_bit, m=args.num_int)
     return feat
 
