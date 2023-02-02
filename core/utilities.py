@@ -388,7 +388,7 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=1):
     feat_tmp = float_to_binary_vec(sample_feature_arr)
     # print(feat_tmp)
     feat = np.apply_along_axis(string_to_int, 1, feat_tmp)
-    print(feat.shape)
+    print(feat)
 
     rl = r * l
     sum_ = 0
