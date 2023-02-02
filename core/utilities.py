@@ -342,81 +342,33 @@ def unpacking_apply_along_axis(all_args):
     return np.apply_along_axis(func1d, axis, arr, *args, **kwargs)
 
 
-def parallel_apply_along_axis(func1d, axis, NUM_PROCESS, arr, *args, **kwargs):
-    """
-    Like numpy.apply_along_axis(), but takes advantage of multiple
-    cores.
-    """
-    # Effective axis where apply_along_axis() will be applied by each
-    # worker (any non-zero axis number would work, so as to allow the use
-    # of `np.array_split()`, which is only done on axis 0):
-    effective_axis = 1 if axis == 0 else axis
-    if effective_axis != axis:
-        arr = arr.swapaxes(axis, effective_axis)
-
-    # Chunks for the mapping (only a few chunks):
-    chunks = [(func1d, effective_axis, sub_arr, args, kwargs)
-              for sub_arr in np.array_split(arr, NUM_PROCESS)]
-
-    # print(chunks)
-
-    pool = multiprocessing.Pool(processes=NUM_PROCESS)
-    individual_results = pool.map(unpacking_apply_along_axis, chunks)
-
-    # Freeing the workers:
-    pool.close()
-    pool.join()
-
-    # print(individual_results)
-
-    return np.concatenate(individual_results)
-
-
-def parallel_matrix_operation(func, arr, NUM_PROCESS):
-    # chunks = [(func, sub_arr) for sub_arr in np.array_split(arr, NUM_PROCESS)]
-    chunks = np.array_split(arr, NUM_PROCESS)
-
-    pool = multiprocessing.Pool(processes=NUM_PROCESS)
-    individual_results = pool.map(func, chunks)
-
-    # Freeing the workers:
-    pool.close()
-    pool.join()
-
-    # print(individual_results)
-
-    return np.concatenate(individual_results)
-
-
-def float_to_binary(x, m=3, n=6):
-    x_abs = np.abs(x)
-    x_scaled = round(x_abs * 2 ** n)
-    res = '{:0{}b}'.format(x_scaled, m + n)
-    if x >= 0:
-        res = '0' + res
-    else:
-        res = '1' + res
-    return res
-
-
-# binary to float
-def binary_to_float(bstr, m=3, n=6):
-    sign = bstr[0]
-    bs = bstr[1:]
-    res = int(bs, 2) / 2 ** n
-    if int(sign) == 1:
-        res = -1 * res
-    return res
-
-
-def string_to_int(a):
-    bit_str = "".join(x for x in a)
-    return np.array(list(bit_str)).astype(int)
-
 
 
 def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     r = sample_feature_arr.shape[1]
+
+    def float_to_binary(x, m=m, n=l-m):
+        x_abs = np.abs(x)
+        x_scaled = round(x_abs * 2 ** n)
+        res = '{:0{}b}'.format(x_scaled, m + n)
+        if x >= 0:
+            res = '0' + res
+        else:
+            res = '1' + res
+        return res
+
+    # binary to float
+    def binary_to_float(bstr, m=m, n=l-m):
+        sign = bstr[0]
+        bs = bstr[1:]
+        res = int(bs, 2) / 2 ** n
+        if int(sign) == 1:
+            res = -1 * res
+        return res
+
+    def string_to_int(a):
+        bit_str = "".join(x for x in a)
+        return np.array(list(bit_str)).astype(int)
 
     def join_string(a, num_bit=l, num_feat=r):
         res = np.empty(num_feat, dtype="S10")
@@ -428,9 +380,11 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
 
     float_to_binary_vec = np.vectorize(float_to_binary)
     binary_to_float_vec = np.vectorize(binary_to_float)
+    join_string_vec = np.vectorize(join_string)
+    string_to_int_vec = np.vectorize(string_to_int)
 
-    feat_tmp = parallel_matrix_operation(float_to_binary_vec, sample_feature_arr, NUM_PROCESS=4)
-    feat = parallel_apply_along_axis(string_to_int, axis=1, arr=feat_tmp, NUM_PROCESS=4)
+    feat_tmp = float_to_binary_vec(sample_feature_arr)
+    feat = string_to_int_vec(feat_tmp)
 
     rl = r * l
     sum_ = 0
@@ -444,6 +398,6 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     perturb = (p_temp > p).astype(int)
 
     perturb_feat = (perturb + feat) % 2
-    perturb_feat = parallel_apply_along_axis(join_string, axis=1, arr=perturb_feat, NUM_PROCESS=4)
+    perturb_feat = join_string_vec(perturb_feat)
     # print(perturb_feat)
-    return parallel_matrix_operation(binary_to_float_vec, perturb_feat, NUM_PROCESS=4)
+    return binary_to_float_vec(perturb_feat)
