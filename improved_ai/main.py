@@ -45,8 +45,8 @@ def get_model_conf(args, target_classifier, true_x, true_y, target_attr, labels,
 
 
 # Confidence Score-based Model Inversion Attack from Mehnaz et al. (2022)
-def get_csmia_pred(target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals, col_flags,
-                   skip_corr=False):
+def get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals, col_flags,
+                   skip_corr=False, mode='test'):
     pred_conf = np.zeros((len(true_x), len(labels)))
     pred_label = np.zeros((len(true_x), len(labels)))
     csmia_pred = np.zeros(len(true_x))
@@ -54,8 +54,8 @@ def get_csmia_pred(target_classifier, true_x, true_y, target_attr, labels, attri
         features = np.copy(true_x)
         features[:, target_attr] = val / max_attr_vals[target_attr]
         pred_input_fn = tf.estimator.inputs.numpy_input_fn(
-            x={'x': process_features(features, args.train_dataset, attribute_dict, max_attr_vals, target_attr,
-                                     col_flags, skip_corr=skip_corr)},
+            x={'x': process_features(args, features, args.train_dataset, attribute_dict, max_attr_vals, target_attr,
+                                     col_flags, skip_corr=skip_corr, mode=mode)},
             num_epochs=1,
             shuffle=False)
         pred_lab, pred_scores = get_predictions(target_classifier.predict(input_fn=pred_input_fn))
@@ -111,15 +111,15 @@ def get_wb_info(layer_outputs, adv_known_idx, labels, sensitive_test, c_idx=None
     return (whitebox_info_k_1, whitebox_info_k_10, whitebox_info_k_100), plot_info_dict
 
 
-def get_whitebox_info(target_classifier, true_x, adv_known_idx, target_attr, labels, attribute_dict, max_attr_vals,
-                      col_flags, sensitive_test, c_idx=None, skip_corr=False):
+def get_whitebox_info(args, target_classifier, true_x, adv_known_idx, target_attr, labels, attribute_dict, max_attr_vals,
+                      col_flags, sensitive_test, c_idx=None, skip_corr=False, mode='test'):
     layer_outputs = []
     for val in labels:
         features = np.copy(true_x)
         features[:, target_attr] = val / max_attr_vals[target_attr]
         pred_input_fn = tf.estimator.inputs.numpy_input_fn(
-            x={'x': process_features(features, args.train_dataset, attribute_dict, max_attr_vals, target_attr,
-                                     col_flags, skip_corr=skip_corr)},
+            x={'x': process_features(args, features, args.train_dataset, attribute_dict, max_attr_vals, target_attr,
+                                     col_flags, skip_corr=skip_corr, mode=mode)},
             num_epochs=1,
             shuffle=False)
         layer_outputs.append(get_layer_outputs(target_classifier.predict(input_fn=pred_input_fn)))
@@ -184,12 +184,12 @@ def run_experiment(args):
                                 col_flags, skip_corr=args.skip_corr, mode='test')
     yeom_pred = yeom_membership_inference(-np.log(model_conf), None, train_loss)
     yeom_pred_2 = yeom_membership_inference(-np.log(model_conf), None, train_loss, test_loss)
-    csmia_pred = get_csmia_pred(target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals,
-                                col_flags, skip_corr=args.skip_corr)
+    csmia_pred = get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals,
+                                col_flags, skip_corr=args.skip_corr, mode='test')
 
     sensitive_test = true_x[:, target_attr] * max_attr_vals[target_attr]
-    known_test = process_features(true_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags,
-                                  skip_sensitive=True, skip_corr=args.skip_corr)
+    known_test = process_features(args, true_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags,
+                                  skip_sensitive=True, skip_corr=args.skip_corr, mode='test')
 
     prior_prob = np.zeros(len(labels))
     for k, v in Counter(sensitive_test).items():
@@ -204,8 +204,8 @@ def run_experiment(args):
             adv_known_idx = subsample(adv_known_idx_, true_x[adv_known_idx_, target_attr] * max_attr_vals[target_attr],
                                       sample_size)
             sensitive_train = true_x[adv_known_idx, target_attr] * max_attr_vals[target_attr]
-            known_train = process_features(true_x[adv_known_idx], args.train_dataset, attribute_dict, max_attr_vals,
-                                           target_attr, col_flags, skip_sensitive=True, skip_corr=args.skip_corr)
+            known_train = process_features(args, true_x[adv_known_idx], args.train_dataset, attribute_dict, max_attr_vals,
+                                           target_attr, col_flags, skip_sensitive=True, skip_corr=args.skip_corr, mode='test')
 
             # training the imputation model
             imp_conf, imp_aux = imputation_training(args, known_train, sensitive_train, known_test, sensitive_test,
@@ -245,14 +245,14 @@ def run_experiment(args):
                                                         axis=1)) / c_size))
 
             if threat_level == 'high' and sample_size == 50000:
-                whitebox_info, plot_info_dict = get_whitebox_info(target_classifier, true_x, list(range(len(train_x))),
+                whitebox_info, plot_info_dict = get_whitebox_info(args, target_classifier, true_x, list(range(len(train_x))),
                                                                   target_attr, labels, attribute_dict, max_attr_vals,
                                                                   col_flags, sensitive_test, c_idx=train_c_idx,
-                                                                  skip_corr=args.skip_corr)
+                                                                  skip_corr=args.skip_corr, mode='test')
             else:
-                whitebox_info, plot_info_dict = get_whitebox_info(target_classifier, true_x, adv_known_idx, target_attr,
+                whitebox_info, plot_info_dict = get_whitebox_info(args, target_classifier, true_x, adv_known_idx, target_attr,
                                                                   labels, attribute_dict, max_attr_vals, col_flags,
-                                                                  sensitive_test, skip_corr=args.skip_corr)
+                                                                  sensitive_test, skip_corr=args.skip_corr, mode='test')
 
             if threat_level == 'low':
                 idx = train_c_idx + test_c_idx + sk_test_idx
