@@ -387,7 +387,7 @@ def parallel_matrix_operation(func, arr, NUM_PROCESS):
     return np.concatenate(individual_results)
 
 
-def float_to_binary(x, m, n):
+def float_to_binary(x, m=3, n=6):
     x_abs = np.abs(x)
     x_scaled = round(x_abs * 2 ** n)
     res = '{:0{}b}'.format(x_scaled, m + n)
@@ -399,7 +399,7 @@ def float_to_binary(x, m, n):
 
 
 # binary to float
-def binary_to_float(bstr, m, n):
+def binary_to_float(bstr, m=3, n=6):
     sign = bstr[0]
     bs = bstr[1:]
     res = int(bs, 2) / 2 ** n
@@ -425,8 +425,8 @@ def join_string(a, num_bit, num_feat):
 def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     r = sample_feature_arr.shape[1]
 
-    float_to_binary_vec = np.vectorize(float_to_binary, m, l - m)
-    binary_to_float_vec = np.vectorize(binary_to_float, m, l - m)
+    float_to_binary_vec = np.vectorize(float_to_binary)
+    binary_to_float_vec = np.vectorize(binary_to_float)
 
     feat_tmp = parallel_matrix_operation(float_to_binary_vec, sample_feature_arr)
     feat = parallel_apply_along_axis(string_to_int, axis=1, arr=feat_tmp)
