@@ -325,4 +325,122 @@ def plot_regions(plot_info, skew_label, sensitive_label, dataset='census'):
     ax1.legend(loc='upper right')
     ax2.legend(loc='upper left')
     plt.show()
-    
+
+def unpacking_apply_along_axis(all_args):
+    (func1d, axis, arr, args, kwargs) = all_args
+
+    """
+    Like numpy.apply_along_axis(), but with arguments in a tuple
+    instead.
+    This function is useful with multiprocessing.Pool().map(): (1)
+    map() only handles functions that take a single argument, and (2)
+    this function can generally be imported from a module, as required
+    by map().
+    """
+    return np.apply_along_axis(func1d, axis, arr, *args, **kwargs)
+
+
+def parallel_apply_along_axis(func1d, axis, NUM_PROCESS, arr, *args, **kwargs):
+    """
+    Like numpy.apply_along_axis(), but takes advantage of multiple
+    cores.
+    """
+    # Effective axis where apply_along_axis() will be applied by each
+    # worker (any non-zero axis number would work, so as to allow the use
+    # of `np.array_split()`, which is only done on axis 0):
+    effective_axis = 1 if axis == 0 else axis
+    if effective_axis != axis:
+        arr = arr.swapaxes(axis, effective_axis)
+
+    # Chunks for the mapping (only a few chunks):
+    chunks = [(func1d, effective_axis, sub_arr, args, kwargs)
+              for sub_arr in np.array_split(arr, NUM_PROCESS)]
+
+    # print(chunks)
+
+    pool = multiprocessing.Pool(processes=NUM_PROCESS)
+    individual_results = pool.map(unpacking_apply_along_axis, chunks)
+
+    # Freeing the workers:
+    pool.close()
+    pool.join()
+
+    # print(individual_results)
+
+    return np.concatenate(individual_results)
+
+
+def parallel_matrix_operation(func, arr, NUM_PROCESS):
+    # chunks = [(func, sub_arr) for sub_arr in np.array_split(arr, NUM_PROCESS)]
+    chunks = np.array_split(arr, NUM_PROCESS)
+
+    pool = multiprocessing.Pool(processes=NUM_PROCESS)
+    individual_results = pool.map(func, chunks)
+
+    # Freeing the workers:
+    pool.close()
+    pool.join()
+
+    # print(individual_results)
+
+    return np.concatenate(individual_results)
+
+def float_to_binary(x, m, n):
+    x_abs = np.abs(x)
+    x_scaled = round(x_abs * 2 ** n)
+    res = '{:0{}b}'.format(x_scaled, m + n)
+    if x >= 0:
+        res = '0' + res
+    else:
+        res = '1' + res
+    return res
+
+
+# binary to float
+def binary_to_float(bstr, m, n):
+    sign = bstr[0]
+    bs = bstr[1:]
+    res = int(bs, 2) / 2 ** n
+    if int(sign) == 1:
+        res = -1 * res
+    return res
+
+
+def string_to_int(a):
+    bit_str = "".join(x for x in a)
+    return np.array(list(bit_str)).astype(int)
+
+
+def join_string(a, num_bit, num_feat):
+    res = np.empty(num_feat, dtype="S10")
+    # res = []
+    for i in range(num_feat):
+        # res.append("".join(str(x) for x in a[i*l:(i+1)*l]))
+        res[i] = "".join(str(x) for x in a[i * num_bit:(i + 1) * num_bit])
+    return res
+
+
+def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
+    r = sample_feature_arr.shape[1]
+
+    float_to_binary_vec = np.vectorize(float_to_binary, m, l - m)
+    binary_to_float_vec = np.vectorize(binary_to_float, m, l - m)
+
+    feat_tmp = parallel_matrix_operation(float_to_binary_vec, sample_feature_arr)
+    feat = parallel_apply_along_axis(string_to_int, axis=1, arr=feat_tmp)
+
+    rl = r * l
+    sum_ = 0
+    for k in range(l):
+        sum_ += np.exp(2 * eps * k / l)
+    alpha = np.sqrt((eps + rl) / (2 * r * sum_))
+    index_matrix = np.array(range(l))
+    index_matrix = np.tile(index_matrix, (sample_feature_arr.shape[0], r))
+    p = 1 / (1 + alpha * np.exp(index_matrix * eps / l))
+    p_temp = np.random.rand(p.shape[0], p.shape[1])
+    perturb = (p_temp > p).astype(int)
+
+    perturb_feat = (perturb + feat) % 2
+    perturb_feat = parallel_apply_along_axis(join_string, axis=1, arr=perturb_feat)
+    # print(perturb_feat)
+    return parallel_matrix_operation(binary_to_float_vec, perturb_feat)

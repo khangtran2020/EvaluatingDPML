@@ -4,7 +4,7 @@ import random
 import numpy as np
 import pandas as pd
 
-from core.utilities import plot_regions
+from core.utilities import plot_regions, BitRand
 from sklearn.model_selection import train_test_split
 from collections import Counter
 
@@ -213,7 +213,7 @@ def load_data(data_name, args):
     return train_x, train_y, test_x[:int(gamma*target_size)], test_y[:int(gamma*target_size)]
 
 
-def process_features(features, dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_sensitive=False, skip_corr=False):
+def process_features(args, features, dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_sensitive=False, skip_corr=False, mode='train'):
     """
     Returns the feature matrix after expanding the nominal features, 
     and removing the features that are not needed for model training.
@@ -251,7 +251,10 @@ def process_features(features, dataset, attribute_dict, max_attr_vals, target_at
                 features[col] *= max_attr_vals[col]
                 features[col] = pd.Categorical(features[col], categories=range(int(max_attr_vals[col])+1))
         features = pd.get_dummies(features)
-    return np.array(features)
+    feat = np.array(features)
+    if mode == 'train':
+        feat = BitRand(sample_feature_arr=feat, eps=args.target_epsilon, l=args.num_bit, m=args.num_int)
+    return feat
 
 
 def threat_model(args, tot_len):

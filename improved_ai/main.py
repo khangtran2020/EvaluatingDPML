@@ -140,7 +140,7 @@ def run_experiment(args):
     # training the target model
     _, _, _, target_classifier, model_aux = train_target_model(
         args=args,
-        dataset=[process_features(train_x[train_idx], args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_corr=args.skip_corr), train_y[train_idx], process_features(test_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_corr=args.skip_corr), test_y],
+        dataset=[process_features(args, train_x[train_idx], args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_corr=args.skip_corr, mode='train'), train_y[train_idx], process_features(args, test_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_corr=args.skip_corr, mode='test'), test_y],
         epochs=args.target_epochs,
         batch_size=args.target_batch_size,
         learning_rate=args.target_learning_rate,
@@ -225,6 +225,8 @@ if __name__ == '__main__':
     parser.add_argument('--skip_corr', type=int, default=0, help='For Texas-100X, whether to skip Race (or Ethnicity) when the target sensitive attribute is Ethnicity (or Race) -- default is not to skip (0)')
     # target and shadow model configuration
     parser.add_argument('--n_shadow', type=int, default=5)
+    parser.add_argument('--num_bit', type=int, default=10)
+    parser.add_argument('--num_int', type=int, default=3)
     parser.add_argument('--target_data_size', type=int, default=int(5e4))
     parser.add_argument('--target_test_train_ratio', type=float, default=0.5)
     parser.add_argument('--target_model', type=str, default='nn')
