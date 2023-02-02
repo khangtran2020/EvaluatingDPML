@@ -349,7 +349,7 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=1):
     print(sample_feature_arr.dtype)
     r = sample_feature_arr.shape[1]
 
-    def float_to_binary(x, m=m, n=l-m):
+    def float_to_binary(x, m=m, n=l-m-1):
         x_abs = np.abs(x)
         x_scaled = round(x_abs * 2 ** n)
         res = '{:0{}b}'.format(x_scaled, m + n)
@@ -360,7 +360,7 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=1):
         return res
 
     # binary to float
-    def binary_to_float(bstr, m=m, n=l-m):
+    def binary_to_float(bstr, m=m, n=l-m-1):
         sign = bstr[0]
         bs = bstr[1:]
         res = int(bs, 2) / 2 ** n
