@@ -346,7 +346,7 @@ def unpacking_apply_along_axis(all_args):
 
 def BitRand(sample_feature_arr, eps=10.0, l=10, m=1):
     # print(np.max(sample_feature_arr), np.min(sample_feature_arr))
-    print(sample_feature_arr.dtype)
+    # print(sample_feature_arr.dtype)
     r = sample_feature_arr.shape[1]
 
     def float_to_binary(x, m=m, n=l-m-1):
@@ -402,6 +402,6 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=1):
     perturb = (p_temp > p).astype(int)
 
     perturb_feat = (perturb + feat) % 2
-    perturb_feat = join_string_vec(perturb_feat)
+    perturb_feat = np.apply_along_axis(join_string,1, perturb_feat)
     # print(perturb_feat)
     return binary_to_float_vec(perturb_feat)
