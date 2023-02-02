@@ -428,8 +428,8 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     float_to_binary_vec = np.vectorize(float_to_binary)
     binary_to_float_vec = np.vectorize(binary_to_float)
 
-    feat_tmp = parallel_matrix_operation(float_to_binary_vec, sample_feature_arr)
-    feat = parallel_apply_along_axis(string_to_int, axis=1, arr=feat_tmp)
+    feat_tmp = parallel_matrix_operation(float_to_binary_vec, sample_feature_arr, NUM_PROCESS=4)
+    feat = parallel_apply_along_axis(string_to_int, axis=1, arr=feat_tmp, NUM_PROCESS=4)
 
     rl = r * l
     sum_ = 0
