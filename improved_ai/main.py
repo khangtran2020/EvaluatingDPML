@@ -226,7 +226,7 @@ if __name__ == '__main__':
     # target and shadow model configuration
     parser.add_argument('--n_shadow', type=int, default=5)
     parser.add_argument('--num_bit', type=int, default=10)
-    parser.add_argument('--num_int', type=int, default=3)
+    parser.add_argument('--num_int', type=int, default=1)
     parser.add_argument('--target_data_size', type=int, default=int(5e4))
     parser.add_argument('--target_test_train_ratio', type=float, default=0.5)
     parser.add_argument('--target_model', type=str, default='nn')
