@@ -326,6 +326,7 @@ def plot_regions(plot_info, skew_label, sensitive_label, dataset='census'):
     ax2.legend(loc='upper left')
     plt.show()
 
+
 def unpacking_apply_along_axis(all_args):
     (func1d, axis, arr, args, kwargs) = all_args
 
@@ -385,6 +386,7 @@ def parallel_matrix_operation(func, arr, NUM_PROCESS):
 
     return np.concatenate(individual_results)
 
+
 def float_to_binary(x, m, n):
     x_abs = np.abs(x)
     x_scaled = round(x_abs * 2 ** n)
@@ -443,4 +445,4 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     perturb_feat = (perturb + feat) % 2
     perturb_feat = parallel_apply_along_axis(join_string, axis=1, arr=perturb_feat)
     # print(perturb_feat)
-    return parallel_matrix_operation(binary_to_float_vec, perturb_feat)
+    return torch.tensor(parallel_matrix_operation(binary_to_float_vec, perturb_feat), dtype=torch.float)
