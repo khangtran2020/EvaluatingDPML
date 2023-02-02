@@ -384,6 +384,7 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     string_to_int_vec = np.vectorize(string_to_int)
 
     feat_tmp = float_to_binary_vec(sample_feature_arr)
+    print(feat_tmp)
     feat = string_to_int_vec(feat_tmp)
 
     rl = r * l
