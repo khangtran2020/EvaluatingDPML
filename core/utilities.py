@@ -345,6 +345,7 @@ def unpacking_apply_along_axis(all_args):
 
 
 def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
+    print(np.max(sample_feature_arr), np.min(sample_feature_arr))
     r = sample_feature_arr.shape[1]
 
     def float_to_binary(x, m=m, n=l-m):
