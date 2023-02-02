@@ -444,6 +444,6 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     perturb = (p_temp > p).astype(int)
 
     perturb_feat = (perturb + feat) % 2
-    perturb_feat = parallel_apply_along_axis(join_string, axis=1, arr=perturb_feat)
+    perturb_feat = parallel_apply_along_axis(join_string, axis=1, arr=perturb_feat, NUM_PROCESS=4)
     # print(perturb_feat)
-    return torch.tensor(parallel_matrix_operation(binary_to_float_vec, perturb_feat), dtype=torch.float)
+    return parallel_matrix_operation(binary_to_float_vec, perturb_feat, NUM_PROCESS=4)
