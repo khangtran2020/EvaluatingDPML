@@ -381,11 +381,11 @@ def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     float_to_binary_vec = np.vectorize(float_to_binary)
     binary_to_float_vec = np.vectorize(binary_to_float)
     join_string_vec = np.vectorize(join_string)
-    string_to_int_vec = np.vectorize(string_to_int)
+    # string_to_int_vec = np.vectorize(string_to_int)
 
     feat_tmp = float_to_binary_vec(sample_feature_arr)
     print(feat_tmp)
-    feat = string_to_int_vec(feat_tmp)
+    feat = string_to_int(feat_tmp)
 
     rl = r * l
     sum_ = 0
