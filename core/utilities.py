@@ -414,17 +414,17 @@ def string_to_int(a):
     return np.array(list(bit_str)).astype(int)
 
 
-def join_string(a, num_bit, num_feat):
-    res = np.empty(num_feat, dtype="S10")
-    # res = []
-    for i in range(num_feat):
-        # res.append("".join(str(x) for x in a[i*l:(i+1)*l]))
-        res[i] = "".join(str(x) for x in a[i * num_bit:(i + 1) * num_bit])
-    return res
-
 
 def BitRand(sample_feature_arr, eps=10.0, l=10, m=5):
     r = sample_feature_arr.shape[1]
+
+    def join_string(a, num_bit=l, num_feat=r):
+        res = np.empty(num_feat, dtype="S10")
+        # res = []
+        for i in range(num_feat):
+            # res.append("".join(str(x) for x in a[i*l:(i+1)*l]))
+            res[i] = "".join(str(x) for x in a[i * num_bit:(i + 1) * num_bit])
+        return res
 
     float_to_binary_vec = np.vectorize(float_to_binary)
     binary_to_float_vec = np.vectorize(binary_to_float)
