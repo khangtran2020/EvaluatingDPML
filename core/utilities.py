@@ -8,6 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn import svm
+import multiprocessing
 
 # To avoid numerical inconsistency in calculating log
 SMALL_VALUE = 1e-6
