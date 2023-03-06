@@ -189,7 +189,7 @@ def run_experiment(args):
 
     sensitive_test = true_x[:, target_attr] * max_attr_vals[target_attr]
     known_test = process_features(args, true_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags,
-                                  skip_sensitive=True, skip_corr=args.skip_corr, mode='test')
+                                  skip_sensitive=True, skip_corr=args.skip_corr, mode='train')
 
     prior_prob = np.zeros(len(labels))
     for k, v in Counter(sensitive_test).items():
