@@ -36,7 +36,7 @@ fsize = 18 # 16 for main figures and 18 for appendix figures
 
 RESULT_PATH = 'results/'
 T = 3
-RUNS = range(1, 4)
+RUNS = range(3)
 THREAT_MODEL = ['low', 'low2', 'med', 'high']
 SAMPLE_SIZE = [50, 500, 5000, 50000]
 
@@ -49,7 +49,7 @@ def get_result(args):
         'no_privacy': {
             knw: {
                 s_size: {
-                    run: pickle.load(open(RESULT_PATH + args.dataset + '/' + MODEL + 'no_privacy_' + str(args.attribute) + '_' + knw + '_' + str(s_size) + '_0_' + str(run) + '.p', 'rb')) for run in RUNS
+                    run: pickle.load(open(RESULT_PATH + args.dataset + '/' + MODEL + 'no_privacy_' + str(args.attribute) + '_' + knw + '_' + str(s_size) + '_0_' + str(run+1) + '.p', 'rb')) for run in RUNS
                 } for s_size in SAMPLE_SIZE
             } for knw in THREAT_MODEL
         }
@@ -58,7 +58,7 @@ def get_result(args):
         result[args.eps] = {
             knw: {
                 s_size: {
-                    run: pickle.load(open(RESULT_PATH + args.dataset + '/' + MODEL + 'grad_pert_' + args.dp + '_' + str(args.eps) + '_' + str(args.attribute) + '_' + knw + '_' + str(s_size) + '_0_' + str(run) + '.p', 'rb')) for run in RUNS
+                    run: pickle.load(open(RESULT_PATH + args.dataset + '/' + MODEL + 'grad_pert_' + args.dp + '_' + str(args.eps) + '_' + str(args.attribute) + '_' + knw + '_' + str(s_size) + '_0_' + str(run+1) + '.p', 'rb')) for run in RUNS
                 } for s_size in SAMPLE_SIZE
             } for knw in THREAT_MODEL
         }
@@ -66,7 +66,7 @@ def get_result(args):
         result['banished'] = {
             knw: {
                 s_size: {
-                    run: pickle.load(open(RESULT_PATH + args.dataset + '/' + MODEL + 'no_privacy_' + str(args.attribute) + '_' + knw + '_' + str(s_size) + '_1_' + str(run) + '.p', 'rb')) for run in RUNS
+                    run: pickle.load(open(RESULT_PATH + args.dataset + '/' + MODEL + 'no_privacy_' + str(args.attribute) + '_' + knw + '_' + str(s_size) + '_1_' + str(run+1) + '.p', 'rb')) for run in RUNS
                 } for s_size in SAMPLE_SIZE
             } for knw in THREAT_MODEL
         }
