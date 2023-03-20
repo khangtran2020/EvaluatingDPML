@@ -35,8 +35,8 @@ plt.rcParams.update(new_rc_params)
 fsize = 18 # 16 for main figures and 18 for appendix figures
 
 RESULT_PATH = 'results/'
-T = 5
-RUNS = range(T)
+T = 3
+RUNS = range(1, 4)
 THREAT_MODEL = ['low', 'low2', 'med', 'high']
 SAMPLE_SIZE = [50, 500, 5000, 50000]
 
@@ -139,7 +139,7 @@ def plot_ppvs(args, gt, wb, mc, ip, clfs, plot_cond, data_type=0):
     plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
     plt.ylim(0, 1)
     plt.tight_layout()
-    plt.show()
+    plt.savefig('ppvs.jpg')
 
     
 def plot_ppv_change(args, gt, wb, mc, ip, clfs, plot_cond):
@@ -174,7 +174,7 @@ def plot_ppv_change(args, gt, wb, mc, ip, clfs, plot_cond):
     plt.yticks([-1, -0.5, 0, 0.5, 1])
     plt.ylim(-1, 1)
     plt.tight_layout()
-    plt.show()
+    plt.savefig('ppv_change.jpg')
 
 
 def plot_roc(args, gt, wb, mc, ip):
@@ -211,7 +211,7 @@ def plot_roc(args, gt, wb, mc, ip):
     plt.ylim(1 / args.candidate_size, 1)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    plt.savefig('roc.jpg')
 
 
 def scatter_plot(args, gt, wb, mc, ip, clfs, it):
