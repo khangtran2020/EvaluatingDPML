@@ -408,5 +408,5 @@ if __name__ == '__main__':
     }
     plot_ppv_change(args, gt, wb, mc, ip, (clfs_wb, clfs_bb), plot_cond)
     '''
-    #plot_roc(args, gt, wb, mc, ip)
-    scatter_plot(args, gt, wb, mc, ip, (clfs_wb, clfs_bb), 0)
+    plot_roc(args, gt, wb, mc, ip)
+    # scatter_plot(args, gt, wb, mc, ip, (clfs_wb, clfs_bb), 0)
