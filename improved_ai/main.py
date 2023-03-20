@@ -26,6 +26,7 @@ RESULT_PATH = 'results/'
 if not os.path.exists(RESULT_PATH):
     os.makedirs(RESULT_PATH)
 
+
 # args, features, dataset, attribute_dict, max_attr_vals, target_attr, col_flags, skip_sensitive=False, skip_corr=False, mode='train')
 
 def get_model_conf(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals,
@@ -45,7 +46,8 @@ def get_model_conf(args, target_classifier, true_x, true_y, target_attr, labels,
 
 
 # Confidence Score-based Model Inversion Attack from Mehnaz et al. (2022)
-def get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals, col_flags,
+def get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals,
+                   col_flags,
                    skip_corr=False, mode='test'):
     pred_conf = np.zeros((len(true_x), len(labels)))
     pred_label = np.zeros((len(true_x), len(labels)))
@@ -64,11 +66,11 @@ def get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels,
     true_y = true_y.reshape((-1, 1))
     matches = np.sum(pred_label == true_y, axis=1)
     print('Records with all incorrect predictions:\t %d (%.2f%%)' % (
-    sum(matches == 0), 100 * sum(matches == 0) / len(matches)))
+        sum(matches == 0), 100 * sum(matches == 0) / len(matches)))
     print('Records with exactly one correct prediction:\t %d (%.2f%%)' % (
-    sum(matches == 1), 100 * sum(matches == 1) / len(matches)))
+        sum(matches == 1), 100 * sum(matches == 1) / len(matches)))
     print('Records with multiple correct predictions:\t %d (%.2f%%)' % (
-    sum(matches >= 2), 100 * sum(matches >= 2) / len(matches)))
+        sum(matches >= 2), 100 * sum(matches >= 2) / len(matches)))
     csmia_pred[matches == 0] = np.argmin(pred_conf[matches == 0], axis=1)
     csmia_pred[matches == 1] = np.argmax(pred_label[matches == 1] == true_y[matches == 1], axis=1)
     csmia_pred[matches >= 2] = np.argmax((pred_label[matches >= 2] == true_y[matches >= 2]) * pred_conf[matches >= 2],
@@ -111,7 +113,8 @@ def get_wb_info(layer_outputs, adv_known_idx, labels, sensitive_test, c_idx=None
     return (whitebox_info_k_1, whitebox_info_k_10, whitebox_info_k_100), plot_info_dict
 
 
-def get_whitebox_info(args, target_classifier, true_x, adv_known_idx, target_attr, labels, attribute_dict, max_attr_vals,
+def get_whitebox_info(args, target_classifier, true_x, adv_known_idx, target_attr, labels, attribute_dict,
+                      max_attr_vals,
                       col_flags, sensitive_test, c_idx=None, skip_corr=False, mode='test'):
     layer_outputs = []
     for val in labels:
@@ -180,15 +183,18 @@ def run_experiment(args):
         save=args.save_model)
     train_loss, train_acc, test_loss, test_acc = model_aux
 
-    model_conf = get_model_conf(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals,
+    model_conf = get_model_conf(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict,
+                                max_attr_vals,
                                 col_flags, skip_corr=args.skip_corr, mode='test')
     yeom_pred = yeom_membership_inference(-np.log(model_conf), None, train_loss)
     yeom_pred_2 = yeom_membership_inference(-np.log(model_conf), None, train_loss, test_loss)
-    csmia_pred = get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict, max_attr_vals,
+    csmia_pred = get_csmia_pred(args, target_classifier, true_x, true_y, target_attr, labels, attribute_dict,
+                                max_attr_vals,
                                 col_flags, skip_corr=args.skip_corr, mode='test')
 
     sensitive_test = true_x[:, target_attr] * max_attr_vals[target_attr]
-    known_test = process_features(args, true_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr, col_flags,
+    known_test = process_features(args, true_x, args.train_dataset, attribute_dict, max_attr_vals, target_attr,
+                                  col_flags,
                                   skip_sensitive=True, skip_corr=args.skip_corr, mode='train')
 
     prior_prob = np.zeros(len(labels))
@@ -204,8 +210,10 @@ def run_experiment(args):
             adv_known_idx = subsample(adv_known_idx_, true_x[adv_known_idx_, target_attr] * max_attr_vals[target_attr],
                                       sample_size)
             sensitive_train = true_x[adv_known_idx, target_attr] * max_attr_vals[target_attr]
-            known_train = process_features(args, true_x[adv_known_idx], args.train_dataset, attribute_dict, max_attr_vals,
-                                           target_attr, col_flags, skip_sensitive=True, skip_corr=args.skip_corr, mode='test')
+            known_train = process_features(args, true_x[adv_known_idx], args.train_dataset, attribute_dict,
+                                           max_attr_vals,
+                                           target_attr, col_flags, skip_sensitive=True, skip_corr=args.skip_corr,
+                                           mode='test')
 
             # training the imputation model
             imp_conf, imp_aux = imputation_training(args, known_train, sensitive_train, known_test, sensitive_test,
@@ -215,14 +223,14 @@ def run_experiment(args):
             print('PMC:\t%.2f\t%.2f' % (max(Counter(sensitive_test[train_c_idx]).values()) / c_size,
                                         max(Counter(sensitive_test[test_c_idx]).values()) / c_size))
             print('IP:\t%.2f\t%.2f' % (
-            sum(sensitive_test[train_c_idx] == np.argmax(imp_conf[train_c_idx], axis=1)) / c_size,
-            sum(sensitive_test[test_c_idx] == np.argmax(imp_conf[test_c_idx], axis=1)) / c_size))
+                sum(sensitive_test[train_c_idx] == np.argmax(imp_conf[train_c_idx], axis=1)) / c_size,
+                sum(sensitive_test[test_c_idx] == np.argmax(imp_conf[test_c_idx], axis=1)) / c_size))
             print('Yeom1:\t%.2f\t%.2f' % (
-            sum(sensitive_test[train_c_idx] == np.argmax(yeom_pred[train_c_idx] * prior_prob, axis=1)) / c_size,
-            sum(sensitive_test[test_c_idx] == np.argmax(yeom_pred[test_c_idx] * prior_prob, axis=1)) / c_size))
+                sum(sensitive_test[train_c_idx] == np.argmax(yeom_pred[train_c_idx] * prior_prob, axis=1)) / c_size,
+                sum(sensitive_test[test_c_idx] == np.argmax(yeom_pred[test_c_idx] * prior_prob, axis=1)) / c_size))
             print('Yeom2:\t%.2f\t%.2f' % (
-            sum(sensitive_test[train_c_idx] == np.argmax(yeom_pred_2[train_c_idx] * prior_prob, axis=1)) / c_size,
-            sum(sensitive_test[test_c_idx] == np.argmax(yeom_pred_2[test_c_idx] * prior_prob, axis=1)) / c_size))
+                sum(sensitive_test[train_c_idx] == np.argmax(yeom_pred_2[train_c_idx] * prior_prob, axis=1)) / c_size,
+                sum(sensitive_test[test_c_idx] == np.argmax(yeom_pred_2[test_c_idx] * prior_prob, axis=1)) / c_size))
             print('Yeom1_IP:\t%.2f\t%.2f' % (sum(
                 sensitive_test[train_c_idx] == np.argmax(yeom_pred[train_c_idx] * imp_conf[train_c_idx],
                                                          axis=1)) / c_size, sum(
@@ -234,8 +242,8 @@ def run_experiment(args):
                 sensitive_test[test_c_idx] == np.argmax(yeom_pred_2[test_c_idx] * imp_conf[test_c_idx],
                                                         axis=1)) / c_size))
             print('BB:\t%.2f\t%.2f' % (
-            sum(sensitive_test[train_c_idx] == np.argmax(model_conf[train_c_idx], axis=1)) / c_size,
-            sum(sensitive_test[test_c_idx] == np.argmax(model_conf[test_c_idx], axis=1)) / c_size))
+                sum(sensitive_test[train_c_idx] == np.argmax(model_conf[train_c_idx], axis=1)) / c_size,
+                sum(sensitive_test[test_c_idx] == np.argmax(model_conf[test_c_idx], axis=1)) / c_size))
             print('CSMIA:\t%.2f\t%.2f' % (sum(sensitive_test[train_c_idx] == csmia_pred[train_c_idx]) / c_size,
                                           sum(sensitive_test[test_c_idx] == csmia_pred[test_c_idx]) / c_size))
             print('BB.IP:\t%.2f\t%.2f' % (sum(
@@ -245,12 +253,14 @@ def run_experiment(args):
                                                         axis=1)) / c_size))
 
             if threat_level == 'high' and sample_size == 50000:
-                whitebox_info, plot_info_dict = get_whitebox_info(args, target_classifier, true_x, list(range(len(train_x))),
+                whitebox_info, plot_info_dict = get_whitebox_info(args, target_classifier, true_x,
+                                                                  list(range(len(train_x))),
                                                                   target_attr, labels, attribute_dict, max_attr_vals,
                                                                   col_flags, sensitive_test, c_idx=train_c_idx,
                                                                   skip_corr=args.skip_corr, mode='test')
             else:
-                whitebox_info, plot_info_dict = get_whitebox_info(args, target_classifier, true_x, adv_known_idx, target_attr,
+                whitebox_info, plot_info_dict = get_whitebox_info(args, target_classifier, true_x, adv_known_idx,
+                                                                  target_attr,
                                                                   labels, attribute_dict, max_attr_vals, col_flags,
                                                                   sensitive_test, skip_corr=args.skip_corr, mode='test')
 
@@ -266,13 +276,14 @@ def run_experiment(args):
                              [wb[idx] for wb in whitebox_info], plot_info_dict, model_aux, imp_aux], open(
                     RESULT_PATH + args.train_dataset + '/' + MODEL + 'no_privacy_' + str(
                         args.attribute) + '_' + threat_level + '_' + str(sample_size) + '_' + str(
-                        args.banished_records) + '_' + str(args.run) + '.p', 'wb'))
+                        args.banished_records) + '_' + str(args.run) + '_' + str(args.target_epsilon) + '.p', 'wb'))
             else:
                 pickle.dump([sensitive_test[idx], csmia_pred[idx], imp_conf[idx], model_conf[idx],
                              [wb[idx] for wb in whitebox_info], plot_info_dict, model_aux, imp_aux], open(
                     RESULT_PATH + args.train_dataset + '/' + MODEL + args.target_privacy + '_' + args.target_dp + '_' + str(
                         args.target_epsilon) + '_' + str(args.attribute) + '_' + threat_level + '_' + str(
-                        sample_size) + '_' + str(args.banished_records) + '_' + str(args.run) + '.p', 'wb'))
+                        sample_size) + '_' + str(args.banished_records) + '_' + str(args.run) + '_' + str(
+                        args.target_epsilon) + '.p', 'wb'))
 
 
 if __name__ == '__main__':
